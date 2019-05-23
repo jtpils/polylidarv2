@@ -18,6 +18,10 @@
 #include "helper.hpp"
 #include "delaunator.hpp"
 
+#include "xtensor/xtensor.hpp"
+#include "xtensor/xarray.hpp"
+#include "xtensor/xadapt.hpp"
+
 #include "pybind11/pybind11.h" // Pybind11 import to define Python bindings
 #include "pybind11/stl.h"      // Pybind11 import for STL containers
 #include <pybind11/stl_bind.h> // Pybind11 stl bindings
@@ -35,10 +39,13 @@
 
 #define DEBUG 1
 
+
+
 namespace py = pybind11;
 
 namespace polylidar {
 
+    typedef xt::xarray_adaptor<xt::xbuffer_adaptor<double *, xt::no_ownership, std::allocator<double>>, xt::layout_type::row_major, std::vector<pybind11::ssize_t, std::allocator<pybind11::ssize_t>>, xt::xtensor_expression_tag> mdarray;
     using vvi = std::vector<std::vector<size_t>>;
     struct Config
     {
@@ -77,7 +84,7 @@ namespace polylidar {
                                 double normThresh, double allowedClass);
 
 
-    std::vector<Polygon> _extractPolygons(py::array_t<double> nparray, Config config);
+    std::vector<Polygon> _extractPolygons(polylidar::mdarray nparray, Config config);
 
     std::vector<Polygon>  extractPolygons(pybind11::array_t<double> nparray,
                                 double alpha, double xyThresh, double lamx, size_t minTriangles,

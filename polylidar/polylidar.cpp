@@ -1,5 +1,6 @@
 #include "polylidar.hpp"
 
+
 double DESIRED_VECTOR[3] = {0.0, 0.0, 1.0};
 namespace py = pybind11;
 using namespace pybind11::literals;
@@ -21,15 +22,15 @@ std::ostream &operator<<(std::ostream &os, const Config &config)
     return os;
 }
 
-std::ostream &operator<<(std::ostream &os, const std::vector<size_t> &values)
-{
+template <typename TElem>
+std::ostream& operator<<(std::ostream& os, const std::vector<TElem>& vec) {
+    auto iter_begin = vec.begin();
+    auto iter_end   = vec.end();
     os << "[";
-    for (auto &&val : values)
-    {
-        os << val << ", ";
+    for (auto iter = iter_begin; iter != iter_end; ++iter) {
+        std::cout << ((iter != iter_begin) ? "," : "") << *iter;
     }
     os << "]";
-
     return os;
 }
 
@@ -613,8 +614,22 @@ std::vector<Polygon> extractPolygons(py::array_t<double> nparray,
                                      double minBboxArea = DEFAULT_MINBBOX, double zThresh = DEFAULT_ZTHRESH,
                                      double normThresh = DEFAULT_NORMTHRESH, double allowedClass = DEFAULT_ALLOWEDCLASS)
 {
+    auto test = std::vector<Polygon>();
     // This function allows us to convert keyword arguments into a configuration struct
     Config config{0, alpha, xyThresh, lmax, minTriangles, minBboxArea, zThresh, normThresh, allowedClass};
+
+    auto info = nparray.request();
+    std::cout << info.shape << info.strides << std::endl;
+    auto size = info.shape[0] * info.shape[1];
+    mdarray points = xt::adapt((double*)info.ptr, size, xt::no_ownership(), info.shape);
+
+
+    // std::cout << points(0,0) << points(3,1) <<std::endl;
+
+    points(3,1) = 100.0;
+
+    // return test;
+
     return _extractPolygons(nparray, config);
 }
 
