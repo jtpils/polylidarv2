@@ -399,7 +399,7 @@ void Delaunator::triangulate() {
     }
 }
 
-Delaunator::Delaunator(std::vector<double> in_coords)
+Delaunator::Delaunator(std::vector<double> &in_coords)
     : coords(in_coords),
       triangles(),
       halfedges(),
@@ -426,12 +426,8 @@ Delaunator::Delaunator(pybind11::array_t<double> nparray)
       m_center_y(),
       m_hash_size(),
       m_edge_stack() {
-        // std::cout << "Inside Delaunator Numpy Constructor" << std::endl;
         auto shape = nparray.shape();
         auto rows = shape[0];
-        // auto cols = shape[1];
-
-        // std::cout << "Shape " << rows << " , " << cols << std::endl;
 
         auto size = rows * 2;
         const double *data = nparray.data();
@@ -439,7 +435,6 @@ Delaunator::Delaunator(pybind11::array_t<double> nparray)
         coords.swap(temp);
     }
     
-
 double Delaunator::get_hull_area() {
     std::vector<double> hull_area;
     size_t e = hull_start;

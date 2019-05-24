@@ -1,3 +1,10 @@
+/**
+    simple.cpp
+    Purpose: Example of using polylidar in C++
+
+    @author Jeremy Castagno
+    @version 05/20/19 
+*/
 #include <iostream>
 #include <vector>
 #include <string>
@@ -6,6 +13,7 @@
 #include "polylidar.hpp"
 
 
+// Print arrays
 template <typename TElem>
 std::ostream& operator<<(std::ostream& os, const std::vector<TElem>& vec) {
     auto iter_begin = vec.begin();
@@ -21,7 +29,6 @@ std::ostream& operator<<(std::ostream& os, const std::vector<TElem>& vec) {
 // Read in an input file of the point cloud
 bool file_input(std::vector<double> &points, std::string file_path)
 {
-  int n = 0;
   std::ifstream is(file_path, std::ios::in);
   if (is.fail())
   {
@@ -30,7 +37,7 @@ bool file_input(std::vector<double> &points, std::string file_path)
   }
 
   std::string line;
-  std::getline(is, line);
+  std::getline(is, line); // Skip header
   std::cout<<line<<std::endl;
   while (std::getline(is, line))
   {
@@ -45,8 +52,6 @@ bool file_input(std::vector<double> &points, std::string file_path)
     points.push_back(b);
     points.push_back(c);
     points.push_back(d);
-    n += 4;
-    // process pair (a,b)
   }
 
   return true;
@@ -64,7 +69,22 @@ int main(int argc, char *argv[])
   if (!success)
     return 0;
 
-  
+  // Conver to multidimensional array
+  std::vector<std::size_t> shape = { points.size() / 4, 4 };
+  polylidar::mdarray points_ = xt::adapt(&points[0], points.size(), xt::no_ownership(), shape);
+  // Set configuration parameters
+  polylidar::Config config;
+  config.xyThresh = 0.0;
+  config.alpha = 0.0;
+  config.lmax = 20.0;
+  config.minTriangles = 20;
+
+  // Extract polygon
+  auto polygons = polylidar::_extractPolygons(points_, config);
+  for(auto const& polygon: polygons) {
+    std::cout << polygon.shell << std::endl;
+  }
+
 
   return 0;
 }

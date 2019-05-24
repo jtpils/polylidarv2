@@ -2,8 +2,6 @@
 
 
 double DESIRED_VECTOR[3] = {0.0, 0.0, 1.0};
-namespace py = pybind11;
-using namespace pybind11::literals;
 
 std::array<double, 2> UP_VECTOR = {0.0, 1.0};
 
@@ -606,59 +604,4 @@ std::vector<Polygon> _extractPolygonsAndTimings(mdarray nparray, Config config, 
 
     return polygons;
 }
-
-std::tuple<delaunator::Delaunator, std::vector<std::vector<size_t>>, std::vector<Polygon>> extractPlanesAndPolygons(py::array_t<double> nparray,
-                                                                                                                    double alpha = DEFAULT_ALPHA, double xyThresh = DEFAULT_XYTHRESH, double lmax=DEFAULT_LMAX, size_t minTriangles = DEFAULT_MINTRIANGLES,
-                                                                                                                    double minBboxArea = DEFAULT_MINBBOX, double zThresh = DEFAULT_ZTHRESH,
-                                                                                                                    double normThresh = DEFAULT_NORMTHRESH, double allowedClass = DEFAULT_ALLOWEDCLASS)
-{
-    // This function allows us to convert keyword arguments into a configuration struct
-    Config config{0, alpha, xyThresh, lmax, minTriangles, minBboxArea, zThresh, normThresh, allowedClass};
-    auto info = nparray.request();
-    auto size = info.shape[0] * info.shape[1];
-    mdarray points = xt::adapt((double*)info.ptr, size, xt::no_ownership(), info.shape);
-    return _extractPlanesAndPolygons(points, config);
-}
-
-std::vector<Polygon> extractPolygons(py::array_t<double> nparray,
-                                     double alpha = DEFAULT_ALPHA, double xyThresh = DEFAULT_XYTHRESH, double lmax=DEFAULT_LMAX, size_t minTriangles = DEFAULT_MINTRIANGLES,
-                                     double minBboxArea = DEFAULT_MINBBOX, double zThresh = DEFAULT_ZTHRESH,
-                                     double normThresh = DEFAULT_NORMTHRESH, double allowedClass = DEFAULT_ALLOWEDCLASS)
-{
-    auto test = std::vector<Polygon>();
-    // This function allows us to convert keyword arguments into a configuration struct
-    Config config{0, alpha, xyThresh, lmax, minTriangles, minBboxArea, zThresh, normThresh, allowedClass};
-
-    auto info = nparray.request();
-    std::cout << info.shape << info.strides << std::endl;
-    auto size = info.shape[0] * info.shape[1];
-    mdarray points = xt::adapt((double*)info.ptr, size, xt::no_ownership(), info.shape);
-
-
-    // std::cout << points(0,0) << points(3,1) <<std::endl;
-
-    points(3,1) = 100.0;
-
-    // return test;
-
-    return _extractPolygons(points, config);
-}
-
-std::tuple<std::vector<Polygon>, std::vector<float>> extractPolygonsAndTimings(py::array_t<double> nparray,
-                                     double alpha = DEFAULT_ALPHA, double xyThresh = DEFAULT_XYTHRESH, double lmax=DEFAULT_LMAX, size_t minTriangles = DEFAULT_MINTRIANGLES,
-                                     double minBboxArea = DEFAULT_MINBBOX, double zThresh = DEFAULT_ZTHRESH,
-                                     double normThresh = DEFAULT_NORMTHRESH, double allowedClass = DEFAULT_ALLOWEDCLASS)
-{
-    // This function allows us to convert keyword arguments into a configuration struct
-    Config config{0, alpha, xyThresh, lmax, minTriangles, minBboxArea, zThresh, normThresh, allowedClass};
-    std::vector<float> timings;
-
-    auto info = nparray.request();
-    auto size = info.shape[0] * info.shape[1];
-    mdarray points = xt::adapt((double*)info.ptr, size, xt::no_ownership(), info.shape);
-    auto polygons = _extractPolygonsAndTimings(points, config, timings);
-    
-    return std::make_tuple(polygons, timings);
-}
-
 } // namespace polylidar

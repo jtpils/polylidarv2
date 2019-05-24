@@ -3,7 +3,6 @@
 #define POLYLIDARHELPER
 #define _USE_MATH_DEFINES
 #include "delaunator.hpp"
-// #include "polylidar.hpp"
 
 #include "xtensor/xtensor.hpp"
 #include "xtensor/xarray.hpp"
@@ -11,7 +10,7 @@
 
 namespace polylidar {
 
-typedef xt::xarray_adaptor<xt::xbuffer_adaptor<double *, xt::no_ownership, std::allocator<double>>, xt::layout_type::row_major, std::vector<pybind11::ssize_t, std::allocator<pybind11::ssize_t>>, xt::xtensor_expression_tag> mdarray;
+typedef xt::xarray_adaptor<xt::xbuffer_adaptor<double*, xt::no_ownership, std::allocator<double> >, (xt::layout_type)1, std::vector<size_t>, xt::xtensor_expression_tag> mdarray;
 
 struct ExtremePoint 
 {
