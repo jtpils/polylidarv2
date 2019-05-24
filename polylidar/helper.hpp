@@ -3,9 +3,15 @@
 #define POLYLIDARHELPER
 #define _USE_MATH_DEFINES
 #include "delaunator.hpp"
-#include "polylidar.hpp"
+// #include "polylidar.hpp"
+
+#include "xtensor/xtensor.hpp"
+#include "xtensor/xarray.hpp"
+#include "xtensor/xadapt.hpp"
 
 namespace polylidar {
+
+typedef xt::xarray_adaptor<xt::xbuffer_adaptor<double *, xt::no_ownership, std::allocator<double>>, xt::layout_type::row_major, std::vector<pybind11::ssize_t, std::allocator<pybind11::ssize_t>>, xt::xtensor_expression_tag> mdarray;
 
 struct ExtremePoint 
 {
@@ -18,9 +24,9 @@ struct ExtremePoint
 
 };
 
-double circumsribedRadius(size_t t, delaunator::Delaunator &delaunay, mdarray &points);
+double circumsribedRadius(size_t t, delaunator::Delaunator &delaunay, polylidar::mdarray &points);
 
-inline bool checkPointClass(size_t t, delaunator::Delaunator &delaunay, mdarray &points, double allowedClass)
+inline bool checkPointClass(size_t t, delaunator::Delaunator &delaunay, polylidar::mdarray &points, double allowedClass)
 {
     auto &triangles = delaunay.triangles;
     std::vector<size_t> pis = {triangles[t * 3], triangles[t * 3 + 1], triangles[t * 3 + 2]};
@@ -33,7 +39,7 @@ inline bool checkPointClass(size_t t, delaunator::Delaunator &delaunay, mdarray 
     return result;
 
 }
-inline void maxZChangeAndNormal(size_t t, delaunator::Delaunator &delaunay, mdarray &points,
+inline void maxZChangeAndNormal(size_t t, delaunator::Delaunator &delaunay, polylidar::mdarray &points,
                                 double &diff, std::array<double, 3> &normal) {
     auto &triangles = delaunay.triangles;
     std::vector<size_t> pis = {triangles[t * 3], triangles[t * 3 + 1], triangles[t * 3 + 2]};
@@ -99,7 +105,7 @@ inline double l2Norm(double dx, double dy)
     return std::sqrt(dx * dx + dy * dy);
 }
 
-inline double getMaxEdgeLength(size_t t, delaunator::Delaunator &delaunay, mdarray &points) {
+inline double getMaxEdgeLength(size_t t, delaunator::Delaunator &delaunay, polylidar::mdarray &points) {
     auto pi0= delaunay.triangles[t * 3];
     auto pi1 = delaunay.triangles[t * 3 + 1];
     auto pi2 = delaunay.triangles[t * 3 + 2];

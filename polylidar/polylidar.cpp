@@ -48,7 +48,6 @@ void copy2Ddata(mdarray &src, std::vector<double> &dest)
 
     // auto src_ = src.unchecked<2>();
     // auto dest_ = dest.mutable_unchecked<2>();
-    int j =0;
     for (int i = 0; i < rows; i++)
     {
         dest[2*i] = src(i,0);
@@ -134,18 +133,18 @@ void createTriHash3(std::unordered_map<size_t, size_t> &triHash, delaunator::Del
 
 void createTriHash4(std::unordered_map<size_t, size_t> &triHash, delaunator::Delaunator &delaunay, mdarray &points, Config &config)
 {
-    auto points_unchecked = points.unchecked<2>();
+    // auto points_unchecked = points.unchecked<2>();
     // std::cout << "Delaunay size " << delaunay.coords.size();
     // TODO static_cast<size_t>
     size_t numTriangles = std::floor(delaunay.triangles.size() / 3);
     for (size_t t = 0; t < numTriangles; t++)
     {
         // std::cout<< "Beginning 2D validation: " << t << std::endl;
-        bool valid2D = validateTriangle2D(t, delaunay, points_unchecked, config);
+        bool valid2D = validateTriangle2D(t, delaunay, points, config);
         // std::cout<< "Beginning 3D validation: " << t << std::endl;
-        bool valid3D = validateTriangle3D(t, delaunay, points_unchecked, config);
+        bool valid3D = validateTriangle3D(t, delaunay, points, config);
         // std::cout<< "Beginning 4D validation: " << t << std::endl;
-        bool valid4D = validateTriangle4D(t, delaunay, points_unchecked, config);
+        bool valid4D = validateTriangle4D(t, delaunay, points, config);
         // std::cout << "Valid4D: " << valid4D << std::endl;
         // auto valid4D = true;
         if (valid2D && valid3D && valid4D)
@@ -189,7 +188,7 @@ void constructPointHash(std::vector<size_t> &plane, delaunator::Delaunator &dela
     // std::cout << "ConstructPointHash - Time creating triangle Hash (ms): " << elapsed.count() << std::endl;
 
 
-    auto points_unchecked = points.unchecked<2>();
+    // auto points_unchecked = points.unchecked<2>();
 
     // Loop through every triangle in the plane
     for (auto &&t : plane)
@@ -210,7 +209,7 @@ void constructPointHash(std::vector<size_t> &plane, delaunator::Delaunator &dela
                 edgeHash[heIndex] = heIndex;
                 // get point index of this half edge, this is an edge leaving from this pi
                 auto pi = triangles[heIndex];
-                trackExtremePoint(pi, points_unchecked, xPoint, heIndex);
+                trackExtremePoint(pi, points, xPoint, heIndex);
                 // Check if the point has already been indexed
                 if (pointHash.find(pi) == pointHash.end())
                 {
@@ -615,7 +614,10 @@ std::tuple<delaunator::Delaunator, std::vector<std::vector<size_t>>, std::vector
 {
     // This function allows us to convert keyword arguments into a configuration struct
     Config config{0, alpha, xyThresh, lmax, minTriangles, minBboxArea, zThresh, normThresh, allowedClass};
-    return _extractPlanesAndPolygons(nparray, config);
+    auto info = nparray.request();
+    auto size = info.shape[0] * info.shape[1];
+    mdarray points = xt::adapt((double*)info.ptr, size, xt::no_ownership(), info.shape);
+    return _extractPlanesAndPolygons(points, config);
 }
 
 std::vector<Polygon> extractPolygons(py::array_t<double> nparray,
@@ -650,6 +652,10 @@ std::tuple<std::vector<Polygon>, std::vector<float>> extractPolygonsAndTimings(p
     // This function allows us to convert keyword arguments into a configuration struct
     Config config{0, alpha, xyThresh, lmax, minTriangles, minBboxArea, zThresh, normThresh, allowedClass};
     std::vector<float> timings;
+
+    auto info = nparray.request();
+    auto size = info.shape[0] * info.shape[1];
+    mdarray points = xt::adapt((double*)info.ptr, size, xt::no_ownership(), info.shape);
     auto polygons = _extractPolygonsAndTimings(points, config, timings);
     
     return std::make_tuple(polygons, timings);
